@@ -6,12 +6,15 @@ import torchvision
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 import timm
-
-import matplotlib.pyplot as plt # For data viz
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import sys
 from tqdm import tqdm
+import gc
+import os
+
+torch.backends.cudnn.benchmark = True
 
 class PlayingCardDataset(Dataset):
     def __init__(self, data_dir, transform=None):
@@ -28,26 +31,26 @@ class PlayingCardDataset(Dataset):
         return self.data.classes
 
 class CardClassifier(nn.Module):
-    def __init__(self, num_classes=53):
+    def __init__(self, num_classes=52):  # Changed to 52 by default
         super(CardClassifier, self).__init__()
         self.base_model = timm.create_model('efficientnet_b0', pretrained=True)
-        self.features = nn.Sequential(*list(self.base_model.children())[:-1])
         
-        enet_out_size = 1280
-        self.classifier = nn.Sequential(
+        # Fine-tuning: unfreeze all parameters
+        for param in self.base_model.parameters():
+            param.requires_grad = True
+            
+        self.base_model.classifier = nn.Sequential(
             nn.Dropout(0.3),
-            nn.Linear(enet_out_size, 512),
+            nn.Linear(1280, 512),
             nn.ReLU(),
             nn.Dropout(0.2),
             nn.Linear(512, num_classes)
         )
     
     def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        return self.classifier(x)
+        return self.base_model(x)
 
-def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs=10, device='cuda'):
+def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs=10, device='mps'):
     best_acc = 0.0
     train_losses = []
     val_losses = []
@@ -63,7 +66,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
         for inputs, labels in tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs} - Training'):
             inputs, labels = inputs.to(device), labels.to(device)
             
-            optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True)
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
@@ -73,6 +76,9 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
             _, predicted = outputs.max(1)
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
+            
+            if device == 'mps':
+                torch.mps.empty_cache()
         
         train_loss = running_loss / len(train_loader)
         train_acc = 100. * correct / total
@@ -115,27 +121,59 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
                 'val_acc': val_acc,
             }, 'best_card_classifier.pth')
             print(f'Model saved with validation accuracy: {val_acc:.2f}%')
+        
+        gc.collect()
     
     return train_losses, val_losses, train_accs, val_accs
 
 def main():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    num_workers = os.cpu_count()
+    print(f'Number of CPU cores available: {num_workers}')
+    
+    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
     print(f'Using device: {device}')
     
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+    # Separate transforms for training and validation
+    train_transform = transforms.Compose([
+        transforms.Resize((160, 160)),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2),
+        transforms.RandomRotation(15),
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     
-    train_dataset = PlayingCardDataset('data/train', transform=transform)
-    val_dataset = PlayingCardDataset('data/valid', transform=transform)
+    val_transform = transforms.Compose([
+        transforms.Resize((160, 160)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
     
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=4)
+    train_dataset = PlayingCardDataset('data/train', transform=train_transform)
+    val_dataset = PlayingCardDataset('data/valid', transform=val_transform)
+    
+    # Print dataset information
+    print(f'Number of classes: {len(train_dataset.classes)}')
+    print('Classes:', train_dataset.classes)
+    
+    batch_size = 128
+    
+    train_loader = DataLoader(
+        train_dataset, 
+        batch_size=batch_size, 
+        shuffle=True, 
+        num_workers=num_workers-1,
+        persistent_workers=True
+    )
+    
+    val_loader = DataLoader(
+        val_dataset, 
+        batch_size=batch_size, 
+        shuffle=False, 
+        num_workers=num_workers-1,
+        persistent_workers=True
+    )
     
     model = CardClassifier(num_classes=len(train_dataset.classes))
     model = model.to(device)
