@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Card Classifier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .preview {
+            max-width: 300px;
+            margin: 20px auto;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+        .confidence {
+            color: #666;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Card Classifier</h1>
+    <div class="upload-container">
+        <input type="file" id="imageInput" accept="image/*">
+        <p>или перетащите изображение сюда</p>
+    </div>
+    <img id="preview" class="preview" style="display: none;">
+    <div id="result" class="result"></div>
+    <div id="confidence" class="confidence"></div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const result = document.getElementById('result');
+        const confidence = document.getElementById('confidence');
+
+        imageInput.addEventListener('change', handleImage);
+
+        function handleImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Показываем превью
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+                
+                // Отправляем на сервер
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        result.textContent = data.error;
+                        confidence.textContent = '';
+                    } else {
+                        result.textContent = `Карта: ${data.card}`;
+                        confidence.textContent = `Уверенность: ${data.confidence}`;
+                    }
+                })
+                .catch(error => {
+                    result.textContent = 'Ошибка при обработке изображения';
+                    confidence.textContent = '';
+                });
+            }
+        }
+
+        // Поддержка drag and drop
+        const dropZone = document.querySelector('.upload-container');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#000';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+            
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                imageInput.files = e.dataTransfer.files;
+                handleImage({ target: { files: [file] } });
+            }
+        });
+    </script>
+</body>
+</html>
