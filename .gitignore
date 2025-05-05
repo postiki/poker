@@ -23,3 +23,6 @@ var/
 .venv
 venv/
 ENV/ 
+data/test/
+data/train/
+data/val/
