@@ -9,7 +9,7 @@ from card_classifier import CardClassifier
 app = Flask(__name__)
 
 device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
-model = CardClassifier(num_classes=52)  # Changed to 52 by default
+model = CardClassifier(num_classes=53)  # Changed to 53 to match dataset
 
 try:
     checkpoint = torch.load('best_card_classifier.pth', map_location=device)

@@ -31,7 +31,7 @@ class PlayingCardDataset(Dataset):
         return self.data.classes
 
 class CardClassifier(nn.Module):
-    def __init__(self, num_classes=52):  # Changed to 52 by default
+    def __init__(self, num_classes=53):  # Changed back to 53 to match dataset
         super(CardClassifier, self).__init__()
         self.base_model = timm.create_model('efficientnet_b0', pretrained=True)
         
