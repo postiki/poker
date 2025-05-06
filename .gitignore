@@ -22,6 +22,6 @@ var/
 .env
 .venv
 venv/
-ENV/ 
-data_classification/
-data_object_detection/
+ENV/
+/data
+/data_classification

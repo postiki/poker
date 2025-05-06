@@ -150,8 +150,8 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     
-    train_dataset = PlayingCardDataset('data_classification/train', transform=train_transform)
-    val_dataset = PlayingCardDataset('data_classification/valid', transform=val_transform)
+    train_dataset = PlayingCardDataset('data/train', transform=train_transform)
+    val_dataset = PlayingCardDataset('data/valid', transform=val_transform)
     
     # Print dataset information
     print(f'Number of classes: {len(train_dataset.classes)}')
