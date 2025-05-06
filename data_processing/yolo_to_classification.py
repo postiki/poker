@@ -59,7 +59,7 @@ def convert_yolo_to_classification(yolo_dir, output_dir, class_names, min_size=1
                         class_id, x_center, y_center, w, h = map(float, parts)
                         class_id = int(class_id)
                         
-                        if not allow_joker and class_id == 53:
+                        if not allow_joker and class_id == 52:
                             continue
                             
                         x1 = int((x_center - w/2) * width)
@@ -95,6 +95,17 @@ def convert_yolo_to_classification(yolo_dir, output_dir, class_names, min_size=1
                 output_path = class_dir / f'{img_path.stem}_full.jpg'
                 cv2.imwrite(str(output_path), img)
                 total_crops += 1
+    
+    for split in ['train', 'valid']:
+        split_dir = output_dir / split
+        if not split_dir.exists():
+            continue
+        for class_dir in split_dir.iterdir():
+            if not class_dir.is_dir():
+                continue
+            if not any(class_dir.iterdir()):
+                print(f'Removing empty class directory: {class_dir}')
+                class_dir.rmdir()
     
     print(f'Dataset conversion complete:')
     print(f'- Total crops saved: {total_crops}')
