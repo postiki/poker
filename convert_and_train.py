@@ -38,15 +38,15 @@ def main():
     else:
         print('Using existing converted dataset...')
     
-    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Using device: {device}')
     
     num_classes = len(class_names)
     train_dataset = ImageFolder(output_dir / 'train', transform=get_train_transforms())
     val_dataset = ImageFolder(output_dir / 'valid', transform=get_val_transforms())
     
-    batch_size = get_optimal_batch_size()
-    num_workers = get_optimal_workers()
+    batch_size = 128
+    num_workers = 16
     
     train_loader = DataLoader(
         train_dataset,
@@ -85,7 +85,7 @@ def main():
         scheduler=scheduler,
         num_epochs=10,
         device=device,
-        use_amp=False
+        use_amp=True
     )
 
 if __name__ == '__main__':

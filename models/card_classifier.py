@@ -5,6 +5,8 @@ from torchvision.datasets import ImageFolder
 import timm
 
 torch.backends.cudnn.benchmark = True
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
 
 class PlayingCardDataset(Dataset):
     def __init__(self, data_dir, transform=None):
@@ -36,6 +38,8 @@ class CardClassifier(nn.Module):
             nn.Dropout(0.2),
             nn.Linear(512, num_classes)
         )
+        
+        self.base_model.grad_checkpointing = True
     
     def forward(self, x):
         return self.base_model(x)
