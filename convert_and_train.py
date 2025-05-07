@@ -63,7 +63,6 @@ def main():
         pin_memory=True
     )
     
-    # ⬇️ Загрузка или инициализация модели
     if os.path.exists('best_card_classifier.pth'):
         print('Loading pretrained model...')
         model = load_pretrained_model('best_card_classifier.pth', num_classes, device=device)
