@@ -28,7 +28,7 @@ class CardClassifier(nn.Module):
         for param in self.base_model.parameters():
             param.requires_grad = True
         
-        in_features = self.base_model.classifier.in_features  # efficientnet uses "classifier"
+        in_features = self.base_model.classifier.in_features
         self.base_model.classifier = nn.Sequential(
             nn.Dropout(0.3),
             nn.Linear(in_features, 512),
