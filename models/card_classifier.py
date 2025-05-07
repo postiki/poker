@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from torchvision.datasets import ImageFolder
 import timm
 
@@ -23,14 +23,15 @@ class PlayingCardDataset(Dataset):
 class CardClassifier(nn.Module):
     def __init__(self, num_classes=53):
         super(CardClassifier, self).__init__()
-        self.base_model = timm.create_model('convnext_tiny', pretrained=True)
+        self.base_model = timm.create_model('efficientnet_b0', pretrained=True)
         
         for param in self.base_model.parameters():
             param.requires_grad = True
-
-        self.base_model.head = nn.Sequential(
+        
+        in_features = self.base_model.classifier.in_features  # efficientnet uses "classifier"
+        self.base_model.classifier = nn.Sequential(
             nn.Dropout(0.3),
-            nn.Linear(self.base_model.num_features, 512),
+            nn.Linear(in_features, 512),
             nn.ReLU(),
             nn.Dropout(0.2),
             nn.Linear(512, num_classes)

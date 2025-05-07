@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 import io
 import os
-from card_classifier import CardClassifier
+from models.card_classifier import CardClassifier
 
 app = Flask(__name__)
 
