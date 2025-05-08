@@ -11,7 +11,7 @@ from data_processing.yolo_to_classification import convert_yolo_to_classificatio
 from data_processing.utils import get_yolo_class_ids, validate_dataset
 from models.card_classifier import CardClassifier, load_pretrained_model
 from training.trainer import train_model
-from config.transforms import get_train_transforms, get_val_transforms, get_train_transforms_new
+from config.transforms import get_train_transforms, get_val_transforms, get_train_transforms_new, get_val_transforms_new
 
 
 def create_class_mapping(include_joker=False):
