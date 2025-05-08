@@ -7,3 +7,5 @@ matplotlib>=3.7.0
 opencv-python>=4.8.0
 kagglehub>=0.3.12
 flask>=3.1.0
+torch~=2.7.0
+torchvision~=0.22.0
