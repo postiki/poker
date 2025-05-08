@@ -13,36 +13,58 @@ from models.card_classifier import CardClassifier, load_pretrained_model
 from training.trainer import train_model
 from config.transforms import get_train_transforms, get_val_transforms, get_train_transforms_new, get_val_transforms_new
 
+# --- Class mapping and sorting ---
 
 def create_class_mapping(include_joker=False):
     suits = ['spades', 'hearts', 'diamonds', 'clubs']
-    ranks = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king']
-
-    class_names = []
-    for suit in suits:
-        for rank in ranks:
-            class_names.append(f'{rank} of {suit}')
-
+    ranks = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven',
+             'eight', 'nine', 'ten', 'jack', 'queen', 'king']
+    class_names = [f'{rank} of {suit}' for suit in suits for rank in ranks]
     if include_joker:
         class_names.append('joker')
+    return sort_card_names(class_names)
 
-    return class_names
+def sort_card_names(class_names):
+    def card_sort_key(name):
+        order_ranks = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven',
+                       'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'joker']
+        order_suits = ['spades', 'hearts', 'diamonds', 'clubs']
+        if name == 'joker':
+            return (100, 100)
+        rank, _, suit = name.partition(' of ')
+        return (order_suits.index(suit), order_ranks.index(rank))
+    return sorted(class_names, key=card_sort_key)
+
+# --- Main logic ---
 
 def main():
     parser = argparse.ArgumentParser(description='Train card classifier with different dataset options')
     parser.add_argument('--dataset', type=str, choices=['small-set', 'big-set'], required=True,
-                      help='Choose which dataset to use (small-set or big-set)')
+                        help='Choose which dataset to use (small-set or big-set)')
     args = parser.parse_args()
 
     if args.dataset == 'small-set':
         dataset_dir = Path('data/data-set-classification')
         train_dataset = ImageFolder(dataset_dir / 'train', transform=get_train_transforms())
         val_dataset = ImageFolder(dataset_dir / 'valid', transform=get_val_transforms())
-        class_names = train_dataset.classes
+
+        # Удаляем 'joker' из train/val вручную, если он есть
+        if 'joker' in train_dataset.class_to_idx:
+            joker_idx = train_dataset.class_to_idx['joker']
+            train_dataset.samples = [s for s in train_dataset.samples if s[1] != joker_idx]
+            val_dataset.samples = [s for s in val_dataset.samples if s[1] != joker_idx]
+
+            # Переопределим class_names вручную, убрав 'joker'
+            class_names = [c for c in train_dataset.classes if c != 'joker']
+        else:
+            class_names = train_dataset.classes
+
+        class_names = sort_card_names(class_names)
+
     else:
         yolo_dir = Path('data/data-set-objectDetection')
         output_dir = Path('data/data_classification')
-        
+
         if not output_dir.exists() or not any(output_dir.iterdir()):
             print('Converting YOLO dataset to classification format...')
             yolo_class_ids = get_yolo_class_ids(yolo_dir)
@@ -62,8 +84,10 @@ def main():
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Using device: {device}')
-    
+
     num_classes = len(class_names)
+    print(class_names, num_classes)
+    return
     batch_size = 128 if device.type == 'cuda' else 32
     num_workers = 16 if device.type == 'cuda' else 4
     
