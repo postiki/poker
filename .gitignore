@@ -24,4 +24,4 @@ var/
 venv/
 ENV/
 /data
-/data_classification
+/data/data_classification

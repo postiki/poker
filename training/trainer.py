@@ -1,10 +1,7 @@
 import torch
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 import psutil
 import gc
-import time
-from torch.utils.tensorboard import SummaryWriter
 
 def get_optimal_batch_size():
     total_memory = psutil.virtual_memory().total
@@ -54,7 +51,6 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     train_accs = []
     val_accs = []
 
-    # AMP не поддерживается на MPS — отключаем
     if device.type == 'mps' and use_amp:
         print("⚠️ AMP отключён: MPS не поддерживает float16 autocast.")
         use_amp = False

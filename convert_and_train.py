@@ -5,45 +5,65 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 from pathlib import Path
+import argparse
 
 from data_processing.yolo_to_classification import convert_yolo_to_classification
 from data_processing.utils import get_yolo_class_ids, validate_dataset
 from models.card_classifier import CardClassifier, load_pretrained_model
-from training.trainer import train_model, get_optimal_batch_size, get_optimal_workers
+from training.trainer import train_model
 from config.transforms import get_train_transforms, get_val_transforms
 
+
 def create_class_mapping(include_joker=False):
-    suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs']
-    ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
-    class_names = ['No Card']
+    suits = ['spades', 'hearts', 'diamonds', 'clubs']
+    ranks = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king']
+
+    class_names = []
     for suit in suits:
         for rank in ranks:
             class_names.append(f'{rank} of {suit}')
+
     if include_joker:
-        class_names.append('Joker')
+        class_names.append('joker')
+
     return class_names
 
 def main():
-    yolo_dir = Path('data/data-set-objectDetection')
-    output_dir = Path('data_classification')
-    
-    yolo_class_ids = get_yolo_class_ids(yolo_dir)
-    include_joker = 52 in yolo_class_ids
-    class_names = create_class_mapping(include_joker=include_joker)
-    
-    if not output_dir.exists() or not any(output_dir.iterdir()):
-        print('Converting YOLO dataset to classification format...')
-        convert_yolo_to_classification(yolo_dir, output_dir, class_names, allow_joker=include_joker)
-        validate_dataset(output_dir)
+    parser = argparse.ArgumentParser(description='Train card classifier with different dataset options')
+    parser.add_argument('--dataset', type=str, choices=['small-set', 'big-set'], required=True,
+                      help='Choose which dataset to use (small-set or big-set)')
+    args = parser.parse_args()
+
+    if args.dataset == 'small-set':
+        dataset_dir = Path('data/data-set-classification')
+        train_dataset = ImageFolder(dataset_dir / 'train', transform=get_train_transforms())
+        val_dataset = ImageFolder(dataset_dir / 'valid', transform=get_val_transforms())
+        class_names = train_dataset.classes
     else:
-        print('Using existing converted dataset...')
-    
+        yolo_dir = Path('data/data-set-objectDetection')
+        output_dir = Path('data/data_classification')
+
+        if not output_dir.exists() or not any(output_dir.iterdir()):
+            print('Converting YOLO dataset to classification format...')
+            yolo_class_ids = get_yolo_class_ids(yolo_dir)
+            include_joker = 52 in yolo_class_ids
+            class_names = create_class_mapping(include_joker=include_joker)
+            convert_yolo_to_classification(yolo_dir, output_dir, class_names, allow_joker=include_joker)
+            validate_dataset(output_dir)
+        else:
+            print('Using existing converted dataset...')
+            yolo_class_ids = get_yolo_class_ids(yolo_dir)
+            include_joker = 52 in yolo_class_ids
+            class_names = create_class_mapping(include_joker=include_joker)
+
+        dataset_dir = output_dir
+        train_dataset = ImageFolder(dataset_dir / 'train', transform=get_train_transforms())
+        val_dataset = ImageFolder(dataset_dir / 'valid', transform=get_val_transforms())
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Using device: {device}')
     
     num_classes = len(class_names)
-    train_dataset = ImageFolder(output_dir / 'train', transform=get_train_transforms())
-    val_dataset = ImageFolder(output_dir / 'valid', transform=get_val_transforms())
     
     batch_size = 128
     num_workers = 16
