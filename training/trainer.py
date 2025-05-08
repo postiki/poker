@@ -13,37 +13,6 @@ def get_optimal_workers():
     cpu_count = psutil.cpu_count(logical=False)
     return min(4, max(2, cpu_count - 1))
 
-def evaluate(model, val_loader, criterion, device='mps', use_amp=True):
-    model.eval()
-    running_loss = 0.0
-    correct = 0
-    total = 0
-
-    with torch.no_grad():
-        for i, (inputs, labels) in enumerate(val_loader):
-            inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-
-            if use_amp:
-                with torch.autocast(device_type='mps', dtype=torch.float16):
-                    outputs = model(inputs)
-                    loss = criterion(outputs.float(), labels)
-            else:
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
-
-            running_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += labels.size(0)
-            correct += predicted.eq(labels).sum().item()
-
-            if i % 50 == 0:
-                torch.mps.empty_cache()
-                gc.collect()
-
-    val_loss = running_loss / len(val_loader)
-    val_acc = 100. * correct / total
-    return val_loss, val_acc
-
 def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs=10, device='mps', use_amp=True):
     best_acc = 0.0
     train_losses = []

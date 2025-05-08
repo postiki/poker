@@ -30,19 +30,19 @@ transform = transforms.Compose([
 
 # Card names mapping
 card_names = {
-    0: 'ace of clubs', 1: 'ace of diamonds', 2: 'ace of hearts', 3: 'ace of spades',
-    4: 'eight of clubs', 5: 'eight of diamonds', 6: 'eight of hearts', 7: 'eight of spades',
-    8: 'five of clubs', 9: 'five of diamonds', 10: 'five of hearts', 11: 'five of spades',
-    12: 'four of clubs', 13: 'four of diamonds', 14: 'four of hearts', 15: 'four of spades',
-    16: 'jack of clubs', 17: 'jack of diamonds', 18: 'jack of hearts', 19: 'jack of spades',
-    20: 'king of clubs', 21: 'king of diamonds', 22: 'king of hearts', 23: 'king of spades',
-    24: 'nine of clubs', 25: 'nine of diamonds', 26: 'nine of hearts', 27: 'nine of spades',
-    28: 'queen of clubs', 29: 'queen of diamonds', 30: 'queen of hearts', 31: 'queen of spades',
-    32: 'seven of clubs', 33: 'seven of diamonds', 34: 'seven of hearts', 35: 'seven of spades',
-    36: 'six of clubs', 37: 'six of diamonds', 38: 'six of hearts', 39: 'six of spades',
-    40: 'ten of clubs', 41: 'ten of diamonds', 42: 'ten of hearts', 43: 'ten of spades',
-    44: 'three of clubs', 45: 'three of diamonds', 46: 'three of hearts', 47: 'three of spades',
-    48: 'two of clubs', 49: 'two of diamonds', 50: 'two of hearts', 51: 'two of spades'
+    0: 'ace of spades', 1: 'two of spades', 2: 'three of spades', 3: 'four of spades',
+    4: 'five of spades', 5: 'six of spades', 6: 'seven of spades', 7: 'eight of spades',
+    8: 'nine of spades', 9: 'ten of spades', 10: 'jack of spades', 11: 'queen of spades',
+    12: 'king of spades', 13: 'ace of hearts', 14: 'two of hearts', 15: 'three of hearts',
+    16: 'four of hearts', 17: 'five of hearts', 18: 'six of hearts', 19: 'seven of hearts',
+    20: 'eight of hearts', 21: 'nine of hearts', 22: 'ten of hearts', 23: 'jack of hearts',
+    24: 'queen of hearts', 25: 'king of hearts', 26: 'ace of diamonds', 27: 'two of diamonds',
+    28: 'three of diamonds', 29: 'four of diamonds', 30: 'five of diamonds', 31: 'six of diamonds',
+    32: 'seven of diamonds', 33: 'eight of diamonds', 34: 'nine of diamonds', 35: 'ten of diamonds',
+    36: 'jack of diamonds', 37: 'queen of diamonds', 38: 'king of diamonds', 39: 'ace of clubs',
+    40: 'two of clubs', 41: 'three of clubs', 42: 'four of clubs', 43: 'five of clubs',
+    44: 'six of clubs', 45: 'seven of clubs', 46: 'eight of clubs', 47: 'nine of clubs',
+    48: 'ten of clubs', 49: 'jack of clubs', 50: 'queen of clubs', 51: 'king of clubs'
 }
 
 @app.route('/')

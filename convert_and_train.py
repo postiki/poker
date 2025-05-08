@@ -109,8 +109,24 @@ def main():
         train_dataset = get_custom_imagefolder(dataset_dir / 'train', get_train_transforms_new(), class_names)
         val_dataset = get_custom_imagefolder(dataset_dir / 'valid', get_val_transforms_new(), class_names)
 
-    # --- Logging and training ---4
+    # --- Logging and training ---
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    print("🔍 Checking class name consistency...")
+    print("Expected class_names:")
+    for i, name in enumerate(class_names):
+        print(f"  {i}: {name}")
+
+    print("Actual class_to_idx from dataset:")
+    for name, idx in train_dataset.class_to_idx.items():
+        print(f"  {idx}: {name}")
+
+    if set(class_names) != set(train_dataset.class_to_idx.keys()):
+        print("❗ WARNING: class_names and dataset class_to_idx do NOT match.")
+    else:
+        print("✅ class_names and dataset class_to_idx are consistent.")
+
+    print(device.type)
+
     batch_size = 128 if device.type == 'cuda' else 32
     num_workers = 16 if device.type == 'cuda' else 4
 
@@ -120,13 +136,13 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False,
                             num_workers=num_workers, pin_memory=(device.type == 'cuda'))
 
-    print('📥 Loading model...')
-    if os.path.exists('best_card_classifier.pth'):
-        model = load_pretrained_model('best_card_classifier.pth', len(class_names), device=device)
-        print('✔️ Loaded pretrained model')
-    else:
-        model = CardClassifier(num_classes=len(class_names)).to(device)
-        print('🛠️ Training from scratch')
+    # print('📥 Loading model...')
+    # if os.path.exists('best_card_classifier.pth'):
+    #     model = load_pretrained_model('best_card_classifier.pth', len(class_names), device=device)
+    #     print('✔️ Loaded pretrained model')
+    # else:
+    model = CardClassifier(num_classes=len(class_names)).to(device)
+    print('🛠️ Training from scratch')
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
