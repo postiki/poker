@@ -61,17 +61,19 @@ def convert_yolo_to_classification(yolo_dir, output_dir, class_names, min_size=1
                         
                         if not allow_joker and class_id == 52:
                             continue
-                            
-                        x1 = int((x_center - w/2) * width)
-                        y1 = int((y_center - h/2) * height)
-                        x2 = int((x_center + w/2) * width)
-                        y2 = int((y_center + h/2) * height)
-                        
+
+                        padding = 0.1
+
+                        x1 = int((x_center - w / 2 - padding) * width)
+                        y1 = int((y_center - h / 2 - padding) * height)
+                        x2 = int((x_center + w / 2 + padding) * width)
+                        y2 = int((y_center + h / 2 + padding) * height)
+
                         x1 = max(0, x1)
                         y1 = max(0, y1)
                         x2 = min(width, x2)
                         y2 = min(height, y2)
-                        
+
                         crop_w = x2 - x1
                         crop_h = y2 - y1
                         
