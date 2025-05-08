@@ -4,13 +4,6 @@ echo "Starting setup process..."
 
 # Update package lists
 sudo apt-get update
-
-# Install SSH server
-sudo apt-get install -y openssh-server
-sudo systemctl enable ssh
-sudo systemctl start ssh
-
-# Install Python and pip
 sudo apt-get install -y python3 python3-pip python3-venv
 
 # Install system dependencies

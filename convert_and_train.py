@@ -48,18 +48,35 @@ def main():
         train_dataset = ImageFolder(dataset_dir / 'train', transform=get_train_transforms())
         val_dataset = ImageFolder(dataset_dir / 'valid', transform=get_val_transforms())
 
-        # Удаляем 'joker' из train/val вручную, если он есть
         if 'joker' in train_dataset.class_to_idx:
             joker_idx = train_dataset.class_to_idx['joker']
             train_dataset.samples = [s for s in train_dataset.samples if s[1] != joker_idx]
             val_dataset.samples = [s for s in val_dataset.samples if s[1] != joker_idx]
 
-            # Переопределим class_names вручную, убрав 'joker'
-            class_names = [c for c in train_dataset.classes if c != 'joker']
-        else:
-            class_names = train_dataset.classes
+            new_classes = [c for c in train_dataset.classes if c != 'joker']
+            class_names = sort_card_names(new_classes)
 
-        class_names = sort_card_names(class_names)
+            class_to_idx = {cls_name: idx for idx, cls_name in enumerate(class_names)}
+
+            def remap_samples(samples, old_class_to_idx, new_class_to_idx):
+                inverse_old_idx_to_class = {v: k for k, v in old_class_to_idx.items()}
+                new_samples = []
+                for path, label in samples:
+                    class_name = inverse_old_idx_to_class[label]
+                    if class_name in new_class_to_idx:
+                        new_label = new_class_to_idx[class_name]
+                        new_samples.append((path, new_label))
+                return new_samples
+
+            train_dataset.class_to_idx = class_to_idx
+            train_dataset.classes = class_names
+            train_dataset.samples = remap_samples(train_dataset.samples, train_dataset.class_to_idx, class_to_idx)
+
+            val_dataset.class_to_idx = class_to_idx
+            val_dataset.classes = class_names
+            val_dataset.samples = remap_samples(val_dataset.samples, val_dataset.class_to_idx, class_to_idx)
+        else:
+            class_names = sort_card_names(train_dataset.classes)
 
     else:
         yolo_dir = Path('data/data-set-objectDetection')
