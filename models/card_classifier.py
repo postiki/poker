@@ -44,7 +44,7 @@ class CardClassifier(nn.Module):
     def forward(self, x):
         return self.base_model(x)
 
-def load_pretrained_model(path, num_classes=53, device='cpu'):
+def load_pretrained_model(path, num_classes=52, device='cpu'):
     model = CardClassifier(num_classes=num_classes)
     checkpoint = torch.load(path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
