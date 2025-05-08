@@ -42,7 +42,7 @@ def main():
     else:
         yolo_dir = Path('data/data-set-objectDetection')
         output_dir = Path('data/data_classification')
-
+        
         if not output_dir.exists() or not any(output_dir.iterdir()):
             print('Converting YOLO dataset to classification format...')
             yolo_class_ids = get_yolo_class_ids(yolo_dir)
@@ -64,16 +64,15 @@ def main():
     print(f'Using device: {device}')
     
     num_classes = len(class_names)
-    
-    batch_size = 128
-    num_workers = 16
+    batch_size = 128 if device.type == 'cuda' else 32
+    num_workers = 16 if device.type == 'cuda' else 4
     
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=True if device.type == 'cuda' else False
     )
     
     val_loader = DataLoader(
@@ -81,7 +80,7 @@ def main():
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=True if device.type == 'cuda' else False
     )
     
     if os.path.exists('best_card_classifier.pth'):
@@ -105,7 +104,7 @@ def main():
         scheduler=scheduler,
         num_epochs=10,
         device=device,
-        use_amp=True
+        use_amp=device.type == 'cuda'
     )
 
 if __name__ == '__main__':
