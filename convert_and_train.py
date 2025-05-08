@@ -87,7 +87,6 @@ def main():
 
     num_classes = len(class_names)
     print(class_names, num_classes)
-    return
     batch_size = 128 if device.type == 'cuda' else 32
     num_workers = 16 if device.type == 'cuda' else 4
     
