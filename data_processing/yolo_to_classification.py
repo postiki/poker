@@ -62,7 +62,7 @@ def convert_yolo_to_classification(yolo_dir, output_dir, class_names, min_size=1
                         if not allow_joker and class_id == 52:
                             continue
 
-                        padding = 0.1
+                        padding = 0.25
 
                         x1 = int((x_center - w / 2 - padding) * width)
                         y1 = int((y_center - h / 2 - padding) * height)

@@ -11,7 +11,7 @@ from data_processing.yolo_to_classification import convert_yolo_to_classificatio
 from data_processing.utils import get_yolo_class_ids, validate_dataset
 from models.card_classifier import CardClassifier, load_pretrained_model
 from training.trainer import train_model
-from config.transforms import get_train_transforms, get_val_transforms
+from config.transforms import get_train_transforms, get_val_transforms, get_train_transforms_new
 
 
 def create_class_mapping(include_joker=False):
@@ -57,8 +57,8 @@ def main():
             class_names = create_class_mapping(include_joker=include_joker)
 
         dataset_dir = output_dir
-        train_dataset = ImageFolder(dataset_dir / 'train', transform=get_train_transforms())
-        val_dataset = ImageFolder(dataset_dir / 'valid', transform=get_val_transforms())
+        train_dataset = ImageFolder(dataset_dir / 'train', transform=get_train_transforms_new())
+        val_dataset = ImageFolder(dataset_dir / 'valid', transform=get_val_transforms_new())
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Using device: {device}')
