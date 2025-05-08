@@ -15,6 +15,11 @@ source venv/bin/activate
 
 # Install Python packages
 pip install --upgrade pip
+
+# Install PyTorch with CUDA support first
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# Install remaining requirements
 pip install -r requirements.txt
 
 # Generate SSH key if it doesn't exist
