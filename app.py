@@ -8,7 +8,7 @@ from models.card_classifier import CardClassifier
 app = Flask(__name__)
 
 device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
-model = CardClassifier(num_classes=53)  # Changed to 53 to match dataset
+model = CardClassifier(num_classes=52)  # Changed to 53 to match dataset
 
 try:
     checkpoint = torch.load('best_card_classifier.pth', map_location=device)
@@ -35,15 +35,14 @@ card_names = {
     8: 'five of clubs', 9: 'five of diamonds', 10: 'five of hearts', 11: 'five of spades',
     12: 'four of clubs', 13: 'four of diamonds', 14: 'four of hearts', 15: 'four of spades',
     16: 'jack of clubs', 17: 'jack of diamonds', 18: 'jack of hearts', 19: 'jack of spades',
-    20: 'joker', 21: 'king of clubs', 22: 'king of diamonds', 23: 'king of hearts',
-    24: 'king of spades', 25: 'nine of clubs', 26: 'nine of diamonds', 27: 'nine of hearts',
-    28: 'nine of spades', 29: 'queen of clubs', 30: 'queen of diamonds', 31: 'queen of hearts',
-    32: 'queen of spades', 33: 'seven of clubs', 34: 'seven of diamonds', 35: 'seven of hearts',
-    36: 'seven of spades', 37: 'six of clubs', 38: 'six of diamonds', 39: 'six of hearts',
-    40: 'six of spades', 41: 'ten of clubs', 42: 'ten of diamonds', 43: 'ten of hearts',
-    44: 'ten of spades', 45: 'three of clubs', 46: 'three of diamonds', 47: 'three of hearts',
-    48: 'three of spades', 49: 'two of clubs', 50: 'two of diamonds', 51: 'two of hearts',
-    52: 'two of spades'
+    20: 'king of clubs', 21: 'king of diamonds', 22: 'king of hearts', 23: 'king of spades',
+    24: 'nine of clubs', 25: 'nine of diamonds', 26: 'nine of hearts', 27: 'nine of spades',
+    28: 'queen of clubs', 29: 'queen of diamonds', 30: 'queen of hearts', 31: 'queen of spades',
+    32: 'seven of clubs', 33: 'seven of diamonds', 34: 'seven of hearts', 35: 'seven of spades',
+    36: 'six of clubs', 37: 'six of diamonds', 38: 'six of hearts', 39: 'six of spades',
+    40: 'ten of clubs', 41: 'ten of diamonds', 42: 'ten of hearts', 43: 'ten of spades',
+    44: 'three of clubs', 45: 'three of diamonds', 46: 'three of hearts', 47: 'three of spades',
+    48: 'two of clubs', 49: 'two of diamonds', 50: 'two of hearts', 51: 'two of spades'
 }
 
 @app.route('/')
