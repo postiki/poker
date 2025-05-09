@@ -39,16 +39,25 @@ def sort_card_names(class_names):
 # --- Custom ImageFolder with consistent class_to_idx ---
 
 def get_custom_imagefolder(root, transform, class_names):
-    class_to_idx = {cls_name: idx for idx, cls_name in enumerate(class_names)}
     samples = []
-    for cls_name in class_names:
+    class_to_idx = {}
+    
+    for idx, cls_name in enumerate(class_names):
+        class_to_idx[cls_name] = idx
+        
         cls_path = os.path.join(root, cls_name)
-        if not os.path.isdir(cls_path):
-            continue
-        for fname in os.listdir(cls_path):
-            fpath = os.path.join(cls_path, fname)
-            if os.path.isfile(fpath):
-                samples.append((fpath, class_to_idx[cls_name]))
+        if os.path.isdir(cls_path):
+            for fname in os.listdir(cls_path):
+                fpath = os.path.join(cls_path, fname)
+                if os.path.isfile(fpath):
+                    samples.append((fpath, idx))
+        
+        cls_path_num = os.path.join(root, str(idx))
+        if os.path.isdir(cls_path_num):
+            for fname in os.listdir(cls_path_num):
+                fpath = os.path.join(cls_path_num, fname)
+                if os.path.isfile(fpath):
+                    samples.append((fpath, idx))
 
     return DatasetWithCustomClasses(samples, class_to_idx, transform)
 
@@ -87,7 +96,6 @@ def main():
 
         train_dataset = get_custom_imagefolder(dataset_dir / 'train', get_train_transforms(), class_names)
         val_dataset = get_custom_imagefolder(dataset_dir / 'valid', get_val_transforms(), class_names)
-
     else:
         yolo_dir = Path('data/data-set-objectDetection')
         output_dir = Path('data/data_classification')
@@ -130,18 +138,19 @@ def main():
     batch_size = 128 if device.type == 'cuda' else 32
     num_workers = 16 if device.type == 'cuda' else 4
 
+    print(batch_size, num_workers)
     print('🧪 Creating DataLoaders...')
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
-                              num_workers=num_workers, pin_memory=(device.type == 'cuda'))
+                              num_workers=num_workers, pin_memory=(device.type == 'cpu'))
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False,
-                            num_workers=num_workers, pin_memory=(device.type == 'cuda'))
+                            num_workers=num_workers, pin_memory=(device.type == 'cpu'))
 
-    # print('📥 Loading model...')
-    # if os.path.exists('best_card_classifier.pth'):
-    #     model = load_pretrained_model('best_card_classifier.pth', len(class_names), device=device)
-    #     print('✔️ Loaded pretrained model')
-    # else:
-    model = CardClassifier(num_classes=len(class_names)).to(device)
+    print('📥 Loading model...')
+    if os.path.exists('best_card_classifier.pth'):
+        model = load_pretrained_model('best_card_classifier.pth', len(class_names), device=device)
+        print('✔️ Loaded pretrained model')
+    else:
+         model = CardClassifier(num_classes=len(class_names)).to(device)
     print('🛠️ Training from scratch')
 
     criterion = nn.CrossEntropyLoss()
